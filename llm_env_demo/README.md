@@ -5,17 +5,17 @@ This is a small reinforcement learning with verifiable rewards demo. We trained 
 ## What We Did
 
 - Loaded `Qwen/Qwen2.5-0.5B-Instruct`.
-- Created a small dataset of exact-answer ML questions in `llm_env_demo/problems.py`.
-- Used GRPO training from `trl` in `llm_env_demo/train.py`.
+- Created a small dataset of exact-answer ML questions in `problems.py`.
+- Used GRPO training from `trl` in `train.py`.
 - Generated multiple completions per prompt.
-- Scored each completion with `llm_env_demo/judge.py`.
-- Saved the final trained model to `llm_env_demo/checkpoints/final`.
-- Logged batch rewards to `llm_env_demo/reward_log.json`.
-- Plotted the training reward curve with `llm_env_demo/plot.py`.
+- Scored each completion with `judge.py`.
+- Saved the final trained model to `checkpoints/final`.
+- Logged batch rewards to `reward_log.json`.
+- Plotted the training reward curve with `plot.py`.
 
 ## Reward Curve
 
-![RLVR reward curve](llm_env_demo/reward_curve.png)
+![RLVR reward curve](reward_curve.png)
 
 ## What We Found
 
@@ -32,7 +32,6 @@ For a stronger experiment, the next step would be to add held-out evaluation que
 ## How To Reproduce
 
 ```bash
-cd llm_env_demo
 source venv/bin/activate
 python train.py
 python plot.py
