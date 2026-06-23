@@ -373,24 +373,50 @@ Setup notes:
 
 ## Execution Sequence
 
-Build the project in this order. Steps 5-7 are "run only if the earlier steps look good"
-— sequenced so no time is wasted benchmarking a broken model.
+The project is split into two chunks. **Build Chunk 1 first, as a single self-contained
+effort ("one-shot" it).** Chunk 1 is a complete, presentable project on its own. Only
+after seeing how it performs do we move to Chunk 2 to try to improve it further.
+
+This split is intentional: get a working, benchmarked model on the table first, then
+layer the reinforcement-learning experiment on top once we know the baseline works.
+
+### Chunk 1 — Train it, prove it, benchmark it (the one-shot)
+
+Walk away from Chunk 1 with: a fine-tuned model, private eval results, and public
+benchmark numbers. Complete and presentable without any RL.
 
 ```text
-1. Data prep        — BugsInPy + synthetic (difflib) + SWE-bench train split,
-                      apply quality filters, lock held-out eval IDs (do on Mac)
-2. QLoRA SFT        — 1 epoch, 5k-10k examples, output LoRA adapter (4090)
-3. Private eval     — 100 held-out tasks, executable harness, vs base model
-                      (gate: fine-tuned must beat base before continuing)
-4. GRPO/RLVR pass   — 200-300 tasks, num_generations=2, then re-eval
-5. Aider Polyglot   — stretch / run if eval looks good
-6. SWE-bench Lite   — stretch / run if eval looks good
-7. LiveCodeBench    — stretch / run if eval looks good
-   (+ optional CodeLlama-7B comparison inference, last, if time allows)
+1. Data prep          — BugsInPy + synthetic (difflib) + SWE-bench train split,
+                        apply quality filters, lock held-out eval IDs (do on Mac)
+2. QLoRA SFT training  — 1 epoch, 5k-10k examples, output LoRA adapter (4090)
+3. Private eval        — 100 held-out tasks, executable harness, base vs fine-tuned
+                        (GATE: fine-tuned must beat base before benchmarking)
+4. Aider Polyglot      — run if private eval looks good
+5. SWE-bench Lite      — run if private eval looks good
+6. LiveCodeBench       — run if private eval looks good
+7. CodeLlama compare   — optional, last, if time allows
+8. Results table       — private eval + all public benchmarks in one table
 ```
 
-The hard gate is step 3: if the fine-tuned model does not beat the base model on the
-private eval, fix SFT/data before spending time on GRPO or public benchmarks.
+Hard gate is step 3: if the fine-tuned model does not beat the base model on the private
+eval, fix data/SFT before spending time on public benchmarks. Steps 4-7 are
+"run only if step 3 looks good" — no time wasted benchmarking a broken model.
+
+### Chunk 2 — GRPO/RLVR only (the improvement experiment)
+
+Layered on top of a Chunk 1 model we are happy with. Answers: "did reinforcement
+learning improve it further?"
+
+```text
+1. Unload SFT setup, load the SFT LoRA adapter as the GRPO starting point
+2. Run GRPO pass       — 200-300 tasks, num_generations=2 (~2-3 hours on 4090)
+3. Re-run the SAME private eval + benchmarks from Chunk 1
+4. Compare SFT-only vs SFT+GRPO on identical metrics
+5. Final writeup including the RL comparison
+```
+
+Do not start Chunk 2 until Chunk 1 produces an SFT model that clears the step-3 gate.
+If SFT results are bad, GRPO will not save them.
 
 ## Deliverables
 
